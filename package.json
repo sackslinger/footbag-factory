@@ -1,0 +1,15 @@
+{
+  "name": "footbag-factory",
+  "version": "1.0.0",
+  "description": "FootBag Factory - Hacky Sack Shop with Stripe payments",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.2",
+    "stripe": "^14.0.0"
+  }
+}

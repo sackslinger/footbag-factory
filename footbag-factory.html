@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FootBag Factory</title>
+
+  <!-- Stripe JS — must load from Stripe's servers for security -->
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- =====================================================
+       🔧 STRIPE PUBLISHABLE KEY
+       Replace the pk_test_... below with your publishable key
+       from: https://dashboard.stripe.com/test/apikeys
+       ===================================================== -->
+  <script>
+    const STRIPE_PUBLISHABLE_KEY = "pk_test_51TSkEJR3R0IeHtwyPtKAeqfOhJE6mJ54lDEdyBlG6zlfhNbwIti6esuOOi9mjIIGsxwUyDzru1sou9zWc4LbP0Nr00ThV0hIKO";
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:        #3B6D11;
+      --green-light:  #EAF3DE;
+      --green-dark:   #27500A;
+      --amber:        #BA7517;
+      --coral:        #D85A30;
+      --teal:         #0F6E56;
+      --bg:           #f5f4f0;
+      --surface:      #ffffff;
+      --surface-2:    #f0efe9;
+      --border:       rgba(0,0,0,0.10);
+      --border-mid:   rgba(0,0,0,0.18);
+      --text:         #1a1a18;
+      --text-muted:   #6b6a65;
+      --text-faint:   #a09f9a;
+      --radius-sm:    8px;
+      --radius-md:    12px;
+      --radius-lg:    16px;
+      --radius-xl:    24px;
+    }
+
+    body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .site-wrap { max-width: 680px; margin: 0 auto; padding: 0 0 5rem; }
+
+    /* HERO */
+    .hero { padding: 3rem 1.5rem 2rem; text-align: center; }
+    .hero-badge { display: inline-block; background: var(--green-light); color: var(--green); font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 1rem; }
+    .hero h1 { font-size: clamp(2.2rem, 6vw, 3rem); font-weight: 800; line-height: 1.05; }
+    .hero h1 span { color: var(--green); }
+    .hero p { font-size: 0.95rem; color: var(--text-muted); margin: 0.8rem auto 0; max-width: 380px; line-height: 1.65; font-family: 'DM Mono', monospace; }
+
+    /* SACK PREVIEW */
+    .preview-area { display: flex; justify-content: center; padding: 1.5rem 0; }
+    .sack-svg { width: 180px; height: 180px; filter: drop-shadow(0 10px 28px rgba(0,0,0,0.18)); transition: filter 0.3s ease; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 4px; background: var(--surface-2); border-radius: 12px; padding: 4px; margin: 0 1.5rem; }
+    .tab { flex: 1; padding: 9px 4px; text-align: center; font-size: 12px; font-family: 'DM Mono', monospace; border-radius: 9px; cursor: pointer; color: var(--text-muted); transition: all 0.15s ease; user-select: none; }
+    .tab.active { background: var(--surface); color: var(--text); font-weight: 500; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* SECTIONS */
+    .section { padding: 0 1.5rem; margin-top: 1.5rem; }
+    .section-label { font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 0.6rem; }
+    .panel { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; }
+
+    /* CHIPS */
+    .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { font-family: 'DM Mono', monospace; font-size: 12px; padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border-mid); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: all 0.15s ease; user-select: none; }
+    .chip:hover { border-color: var(--green); color: var(--green); }
+    .chip.active { background: var(--green-light); border-color: var(--green); color: var(--green); font-weight: 500; }
+    .chip.color-chip { display: flex; align-items: center; gap: 7px; }
+    .chip-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* PRICE ROW */
+    .price-row { display: flex; align-items: baseline; justify-content: space-between; padding: 1.25rem 1.5rem 0; }
+    .price-label { font-size: 13px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+    .price-value { font-size: 2.4rem; font-weight: 800; }
+    .price-value sup { font-size: 1.1rem; vertical-align: super; }
+
+    /* SUMMARY */
+    .summary-card { margin: 1.25rem 1.5rem 0; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 13px; font-family: 'DM Mono', monospace; color: var(--text-muted); padding: 4px 0; }
+    .summary-row span:last-child { color: var(--text); font-weight: 500; }
+    .summary-divider { border: none; border-top: 0.5px solid var(--border); margin: 10px 0; }
+
+    /* PAYMENT */
+    .payment-section { margin: 1.25rem 1.5rem 0; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
+    .pay-label { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+    .pay-input { width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-mid); background: var(--surface-2); color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; margin-bottom: 10px; outline: none; transition: border-color 0.15s; }
+    .pay-input:focus { border-color: var(--green); }
+    .pay-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Stripe card element container */
+    #stripe-card-element {
+      padding: 11px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-mid);
+      background: var(--surface-2);
+      margin-bottom: 10px;
+      transition: border-color 0.15s;
+    }
+    #stripe-card-element.focused { border-color: var(--green); }
+
+    /* Payment error message */
+    #payment-error {
+      color: var(--coral);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 8px;
+      display: none;
+    }
+
+    .pay-secure { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--green); margin-top: 8px; text-align: right; }
+
+    /* CTA */
+    .cta-area { padding: 1.25rem 1.5rem 0; }
+    .btn-primary { width: 100%; padding: 16px; background: var(--green); color: white; border: none; border-radius: var(--radius-md); font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.15s ease, transform 0.1s ease; letter-spacing: 0.03em; }
+    .btn-primary:hover:not(:disabled) { background: var(--teal); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-primary.loading { opacity: 0.7; cursor: wait; }
+
+    /* GALLERY */
+    .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .photo-cell { background: var(--surface-2); border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; position: relative; border: 0.5px solid var(--border); }
+    .photo-cell svg { opacity: 0.25; }
+    .photo-label { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text-faint); }
+
+    /* REVIEWS */
+    .review-card { background: var(--surface-2); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 8px; border: 0.5px solid var(--border); }
+    .review-stars { color: var(--amber); font-size: 14px; margin-bottom: 5px; }
+    .review-text { font-size: 13px; color: var(--text-muted); line-height: 1.6; font-family: 'DM Mono', monospace; }
+    .review-author { font-size: 11px; color: var(--text-faint); margin-top: 6px; font-family: 'DM Mono', monospace; }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--surface); border-radius: var(--radius-xl); padding: 2rem; max-width: 320px; margin: 1rem; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal-emoji { font-size: 2.8rem; margin-bottom: 0.75rem; }
+    .modal-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .modal-body { font-size: 13px; color: var(--text-muted); font-family: 'DM Mono', monospace; line-height: 1.65; }
+    .modal-close { margin-top: 1.5rem; padding: 10px 28px; background: var(--green); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer; }
+  </style>
+</head>
+
+<body>
+<div class="site-wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">Handcrafted in Colorado</div>
+    <h1>Foot<span>Bag</span><br>Factory</h1>
+    <p>Herb-filled, fully customizable hacky sacks — built for flow.</p>
+  </div>
+
+  <!-- SACK PREVIEW -->
+  <div class="preview-area">
+    <svg class="sack-svg" id="sackSvg" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="shine" cx="38%" cy="32%" r="55%">
+          <stop offset="0%"   stop-color="white" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="white" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="90" cy="90" r="74" id="sackBase" fill="#3B6D11"/>
+      <circle cx="90" cy="90" r="74" fill="url(#shine)"/>
+      <path d="M90 16 Q120 55 110 90 Q100 125 90 164" stroke="white" stroke-opacity="0.18" stroke-width="1.5" fill="none"/>
+      <path d="M90 16 Q60 55 70 90 Q80 125 90 164"   stroke="white" stroke-opacity="0.18" stroke-width="1.5" fill="none"/>
+      <path d="M23 55  Q60 65 90 60  Q120 65 157 55"  stroke="white" stroke-opacity="0.18" stroke-width="1.5" fill="none"/>
+      <path d="M23 125 Q60 115 90 120 Q120 115 157 125" stroke="white" stroke-opacity="0.18" stroke-width="1.5" fill="none"/>
+      <circle cx="90" cy="16"  r="4" fill="white" fill-opacity="0.3"/>
+      <circle cx="90" cy="164" r="4" fill="white" fill-opacity="0.3"/>
+    </svg>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('customize')">Customize</div>
+    <div class="tab"        onclick="showTab('gallery')">Gallery</div>
+    <div class="tab"        onclick="showTab('reviews')">Reviews</div>
+    <div class="tab"        onclick="showTab('checkout')">Checkout</div>
+  </div>
+
+  <!-- TAB: CUSTOMIZE -->
+  <div id="tab-customize" class="tab-panel active">
+    <div class="section">
+      <div class="section-label">Choose your color</div>
+      <div class="panel">
+        <div class="chip-grid" id="colorChips">
+          <div class="chip color-chip active" onclick="pickColor(this,'#3B6D11','Greeeen')"><span class="chip-dot" style="background:#3B6D11"></span>Greeeen</div>
+          <div class="chip color-chip"        onclick="pickColor(this,'#D85A30','Sunset Coral')"><span class="chip-dot" style="background:#D85A30"></span>Sunset Coral</div>
+          <div class="chip color-chip"        onclick="pickColor(this,'#ffffff','White')"><span class="chip-dot" style="background:#ffffff"></span>White</div>
+          <div class="chip color-chip"        onclick="pickColor(this,'#185FA5','Deep Blue')"  ><span class="chip-dot" style="background:#185FA5"></span>Deep Blue</div>
+          <div class="chip color-chip"        onclick="pickColor(this,'#993356','Wild Rose')"  ><span class="chip-dot" style="background:#993356"></span>Wild Rose</div>
+          <div class="chip color-chip"        onclick="pickColor(this,'#444441','Charcoal')"   ><span class="chip-dot" style="background:#444441"></span>Charcoal</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Herb filling</div>
+      <div class="panel">
+        <div class="chip-grid" id="herbChips">
+          <div class="chip active" onclick="pickOption('herb',this,'Lavender',0)">Lavender</div>
+          <div class="chip"        onclick="pickOption('herb',this,'Chamomile',1)">Chamomile +$1</div>
+          <div class="chip"        onclick="pickOption('herb',this,'Mint',1)">Mint +$1</div>
+          <div class="chip"        onclick="pickOption('herb',this,'Rosemary',1)">Rosemary +$1</div>
+          <div class="chip"        onclick="pickOption('herb',this,'Lemongrass',2)">Lemongrass +$2</div>
+          <div class="chip"        onclick="pickOption('herb',this,'No herbs (pellets)',0)">No herbs</div>
+        </div>
+      </div>
+    </div>
+
+    
+
+    <div class="section">
+      <div class="section-label">Panel style</div>
+      <div class="panel">
+        <div class="chip-grid" id="panelChips">
+          <div class="chip active" onclick="pickOption('panel',this,'Classic 6-panel',0)">Classic 6-panel</div>
+          <div class="chip"        onclick="pickOption('panel',this,'8-panel',3)">8-panel +$3</div>
+          <div class="chip"        onclick="pickOption('panel',this,'32-panel pro',8)">32-panel pro +$8</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Material</div>
+      <div class="panel">
+        <div class="chip-grid" id="materialChips">
+          <div class="chip active" onclick="pickOption('material',this,'Suede',0)">Suede</div>
+          <div class="chip"        onclick="pickOption('material',this,'Leather',5)">Leather +$5</div>
+          <div class="chip"        onclick="pickOption('material',this,'Vegan Nylon',0)">Vegan Nylon</div>
+          <div class="chip"        onclick="pickOption('material',this,'Canvas',0)">Canvas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: GALLERY -->
+  <div id="tab-gallery" class="tab-panel">
+    <div class="section">
+      <div class="panel">
+        <div class="photo-grid">
+          <div class="photo-cell">
+            <svg width="52" height="52" viewBox="0 0 52 52"><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M18 22 Q26 16 34 22 Q38 30 26 36 Q14 30 18 22Z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <div class="photo-label">Classic Green</div>
+          </div>
+          <div class="photo-cell">
+            <svg width="52" height="52" viewBox="0 0 52 52"><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M16 26 Q20 18 26 16 Q32 18 36 26 Q32 34 26 36 Q20 34 16 26Z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <div class="photo-label">Coral Edition</div>
+          </div>
+          <div class="photo-cell">
+            <svg width="52" height="52" viewBox="0 0 52 52"><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="26" y1="6" x2="26" y2="46" stroke="currentColor" stroke-width="1.2"/><line x1="6" y1="26" x2="46" y2="26" stroke="currentColor" stroke-width="1.2"/><line x1="12" y1="12" x2="40" y2="40" stroke="currentColor" stroke-width="1.2"/><line x1="40" y1="12" x2="12" y2="40" stroke="currentColor" stroke-width="1.2"/></svg>
+            <div class="photo-label">32-Panel Pro</div>
+          </div>
+          <div class="photo-cell">
+            <svg width="52" height="52" viewBox="0 0 52 52"><circle cx="26" cy="26" r="20" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M26 6 L26 46 M15 13 L37 39 M37 13 L15 39" stroke="currentColor" stroke-width="1" stroke-dasharray="3,2"/></svg>
+            <div class="photo-label">Herb Collection</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: REVIEWS -->
+  <div id="tab-reviews" class="tab-panel">
+    <div class="section">
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <div class="review-text">The lavender filling is unreal. After a long session it smells amazing and the suede grip is perfect for stalling.</div>
+        <div class="review-author">— Jake M., Boulder CO</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <div class="review-text">Ordered the 32-panel leather in charcoal. Kicks like a dream, broke in after about 20 minutes. Worth every penny.</div>
+        <div class="review-author">— Priya S., Portland OR</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★☆</div>
+        <div class="review-text">Mint filling was a surprise hit at the park. People kept asking where I got it. Ships fast too.</div>
+        <div class="review-author">— Tomás R., Austin TX</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: CHECKOUT -->
+  <div id="tab-checkout" class="tab-panel">
+
+    <div class="summary-card">
+      <div class="summary-row"><span>Color</span><span id="sum-color">Forest Green</span></div>
+      <div class="summary-row"><span>Herb filling</span><span id="sum-herb">Lavender</span></div>
+      <div class="summary-row"><span>Weight</span><span id="sum-weight">Light (60g)</span></div>
+      <div class="summary-row"><span>Panel style</span><span id="sum-panel">Classic 6-panel</span></div>
+      <div class="summary-row"><span>Material</span><span id="sum-material">Suede</span></div>
+      <hr class="summary-divider">
+      <div class="summary-row"><span>Base price</span><span>$18.00</span></div>
+      <div class="summary-row" id="sum-extra-row" style="display:none">
+        <span>Upgrades</span><span id="sum-extra">+$0.00</span>
+      </div>
+      <div class="summary-row" style="font-weight:600;font-size:14px;">
+        <span>Total</span><span id="sum-total">$18.00</span>
+      </div>
+    </div>
+
+    <div class="payment-section">
+      <div class="pay-label">Contact</div>
+      <input class="pay-input" type="text"  id="cardName"  placeholder="Full name" />
+      <input class="pay-input" type="email" id="cardEmail" placeholder="Email for receipt" />
+
+      <div class="pay-label" style="margin-top:4px;">Card details</div>
+      <!-- Real Stripe card input mounts here -->
+      <div id="stripe-card-element"></div>
+
+      <!-- Error messages from Stripe appear here -->
+      <div id="payment-error"></div>
+
+      <div class="pay-secure">🔒 Secured by Stripe</div>
+    </div>
+
+    <div class="cta-area">
+      <button class="btn-primary" id="pay-btn" onclick="placeOrder()">
+        Pay — <span id="btn-total">$18.00</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- LIVE PRICE -->
+  <div class="price-row">
+    <div>
+      <div class="price-label">your custom sack</div>
+      <div class="price-value"><sup>$</sup><span id="livePrice">18</span></div>
+    </div>
+    <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text-faint);text-align:right;line-height:1.9;">
+      Free shipping<br>over $30
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-emoji">🎉</div>
+    <div class="modal-title">Payment successful!</div>
+    <div class="modal-body" id="modal-text"></div>
+    <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">Close</button>
+  </div>
+</div>
+
+<script>
+  // ── STRIPE SETUP ──────────────────────────────────────
+  const stripeClient  = Stripe(STRIPE_PUBLISHABLE_KEY);
+  const elements      = stripeClient.elements();
+
+  // Mount Stripe's secure card input into our div
+  const cardElement = elements.create("card", {
+    style: {
+      base: {
+        fontFamily: "'DM Mono', monospace",
+        fontSize: "13px",
+        color: "#1a1a18",
+        "::placeholder": { color: "#a09f9a" }
+      },
+      invalid: { color: "#D85A30" }
+    }
+  });
+  cardElement.mount("#stripe-card-element");
+
+  // Highlight border on focus
+  cardElement.on("focus", () => document.getElementById("stripe-card-element").classList.add("focused"));
+  cardElement.on("blur",  () => document.getElementById("stripe-card-element").classList.remove("focused"));
+
+  // ── STATE ─────────────────────────────────────────────
+  const BASE_PRICE = 18;
+  const state = { color: 'Forest Green', herb: 'Lavender', weight: 'Light (60g)', panel: 'Classic 6-panel', material: 'Suede', extras: 0 };
+
+  // ── COLOR PICKER ──────────────────────────────────────
+  function pickColor(el, hex, name) {
+    document.querySelectorAll('#colorChips .chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    state.color = name;
+    document.getElementById('sackBase').setAttribute('fill', hex);
+    updateSummary();
+  }
+
+  // ── OPTION PICKER ─────────────────────────────────────
+  function pickOption(key, el, name, cost) {
+    const groupMap = { herb:'herbChips', weight:'weightChips', panel:'panelChips', material:'materialChips' };
+    document.querySelectorAll('#' + groupMap[key] + ' .chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    state[key] = name;
+    recalcExtras();
+    updateSummary();
+  }
+
+  function recalcExtras() {
+    const herbMap     = { 'Lavender':0,'Chamomile':1,'Mint':1,'Rosemary':1,'Lemongrass':2,'No herbs (pellets)':0 };
+    const weightMap   = { 'Light (60g)':0,'Standard (80g)':0,'Heavy (100g)':2 };
+    const panelMap    = { 'Classic 6-panel':0,'8-panel':3,'32-panel pro':8 };
+    const materialMap = { 'Suede':0,'Leather':5,'Vegan Nylon':0,'Canvas':0 };
+    state.extras = (herbMap[state.herb]||0) + (weightMap[state.weight]||0) + (panelMap[state.panel]||0) + (materialMap[state.material]||0);
+  }
+
+  function updateSummary() {
+    const total = BASE_PRICE + state.extras;
+    document.getElementById('livePrice').textContent    = total;
+    document.getElementById('sum-total').textContent    = '$' + total.toFixed(2);
+    document.getElementById('btn-total').textContent    = '$' + total.toFixed(2);
+    document.getElementById('sum-color').textContent    = state.color;
+    document.getElementById('sum-herb').textContent     = state.herb;
+    document.getElementById('sum-weight').textContent   = state.weight;
+    document.getElementById('sum-panel').textContent    = state.panel;
+    document.getElementById('sum-material').textContent = state.material;
+    if (state.extras > 0) {
+      document.getElementById('sum-extra-row').style.display = 'flex';
+      document.getElementById('sum-extra').textContent = '+$' + state.extras.toFixed(2);
+    } else {
+      document.getElementById('sum-extra-row').style.display = 'none';
+    }
+  }
+
+  function showTab(name) {
+    const tabNames = ['customize','gallery','reviews','checkout'];
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabNames[i] === name));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+
+  // ── PAYMENT ───────────────────────────────────────────
+  async function placeOrder() {
+    const btn        = document.getElementById('pay-btn');
+    const errorDiv   = document.getElementById('payment-error');
+    const name       = document.getElementById('cardName').value.trim();
+    const email      = document.getElementById('cardEmail').value.trim();
+    const total      = BASE_PRICE + state.extras;
+
+    // Basic validation
+    if (!name || !email) {
+      errorDiv.style.display = 'block';
+      errorDiv.textContent = 'Please enter your name and email.';
+      return;
+    }
+
+    errorDiv.style.display = 'none';
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.textContent = 'Processing...';
+
+    try {
+      // Step 1: Ask our server to create a PaymentIntent
+      const response = await fetch('http://localhost:3000/create-payment-intent', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: total,
+          orderDetails: {
+            color:    state.color,
+            herb:     state.herb,
+            weight:   state.weight,
+            panel:    state.panel,
+            material: state.material
+          }
+        })
+      });
+
+      const { clientSecret, error: serverError } = await response.json();
+      if (serverError) throw new Error(serverError);
+
+      // Step 2: Confirm the payment with Stripe using the card element
+      const { error: stripeError, paymentIntent } = await stripeClient.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: { name, email }
+        }
+      });
+
+      if (stripeError) {
+        throw new Error(stripeError.message);
+      }
+
+      // Step 3: Payment succeeded!
+      document.getElementById('modal-text').innerHTML =
+        'Your ' + state.color + ' hacky sack with ' + state.herb.toLowerCase() +
+        ' filling is on its way to ' + email + '!<br><br>' +
+        'Order total: <strong>$' + total.toFixed(2) + '</strong>';
+      document.getElementById('modal').classList.add('open');
+
+    } catch (err) {
+      errorDiv.style.display = 'block';
+      errorDiv.textContent   = err.message;
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btn.innerHTML = 'Pay — <span id="btn-total">$' + (BASE_PRICE + state.extras).toFixed(2) + '</span>';
+    }
+  }
+</script>
+</body>
+</html>
