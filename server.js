@@ -63,6 +63,6 @@ app.post("/create-payment-intent", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`
   ✅ FootBag Factory server running!
-  👉 Open your shop at: http://localhost:${PORT}/footbag-factory.html
+  👉 Open your shop at: http://localhost:${PORT}/index.html
   `);
 });
