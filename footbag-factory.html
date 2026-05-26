@@ -195,9 +195,9 @@
       <div class="section-label">Choose your color</div>
       <div class="panel">
         <div class="chip-grid" id="colorChips">
-          <div class="chip color-chip active" onclick="pickColor(this,'#3B6D11','Greeeen')"><span class="chip-dot" style="background:#3B6D11"></span>Greeeen</div>
+          <div class="chip color-chip active" onclick="pickColor(this,'#3B6D11','Forest Green')"><span class="chip-dot" style="background:#3B6D11"></span>Forest Green</div>
           <div class="chip color-chip"        onclick="pickColor(this,'#D85A30','Sunset Coral')"><span class="chip-dot" style="background:#D85A30"></span>Sunset Coral</div>
-          <div class="chip color-chip"        onclick="pickColor(this,'#ffffff','White')"><span class="chip-dot" style="background:#ffffff"></span>White</div>
+          <div class="chip color-chip"        onclick="pickColor(this,'#BA7517','Desert Amber')"><span class="chip-dot" style="background:#BA7517"></span>Desert Amber</div>
           <div class="chip color-chip"        onclick="pickColor(this,'#185FA5','Deep Blue')"  ><span class="chip-dot" style="background:#185FA5"></span>Deep Blue</div>
           <div class="chip color-chip"        onclick="pickColor(this,'#993356','Wild Rose')"  ><span class="chip-dot" style="background:#993356"></span>Wild Rose</div>
           <div class="chip color-chip"        onclick="pickColor(this,'#444441','Charcoal')"   ><span class="chip-dot" style="background:#444441"></span>Charcoal</div>
@@ -219,7 +219,16 @@
       </div>
     </div>
 
-    
+    <div class="section">
+      <div class="section-label">Filling weight</div>
+      <div class="panel">
+        <div class="chip-grid" id="weightChips">
+          <div class="chip active" onclick="pickOption('weight',this,'Light (60g)',0)">Light — 60g</div>
+          <div class="chip"        onclick="pickOption('weight',this,'Standard (80g)',0)">Standard — 80g</div>
+          <div class="chip"        onclick="pickOption('weight',this,'Heavy (100g)',2)">Heavy — 100g +$2</div>
+        </div>
+      </div>
+    </div>
 
     <div class="section">
       <div class="section-label">Panel style</div>
@@ -457,7 +466,7 @@
 
     try {
       // Step 1: Ask our server to create a PaymentIntent
-      const response = await fetch('http://localhost:3000/create-payment-intent', {
+      const response = await fetch('https://footbag-factory-production.up.railway.app/create-payment-intent', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
