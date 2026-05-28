@@ -163,7 +163,13 @@
 
     /* ── SACK PREVIEW (customize tab) ── */
     .preview-area { display: flex; justify-content: center; padding: 1.5rem 0; }
-    .sack-svg { width: 180px; height: 180px; filter: drop-shadow(0 10px 28px rgba(0,0,0,0.18)); transition: filter 0.3s ease; }
+    .sack-img {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      transition: filter 0.4s ease;
+      filter: drop-shadow(0 10px 28px rgba(0,0,0,0.25)) sepia(1) saturate(4) hue-rotate(60deg);
+    }
 
     /* SECTIONS */
     .section { padding: 0 1.5rem; margin-top: 1.5rem; }
@@ -283,22 +289,7 @@
 
     <!-- SACK PREVIEW -->
     <div class="preview-area">
-      <svg class="sack-svg" id="sackSvg" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="shine" cx="38%" cy="32%" r="55%">
-            <stop offset="0%"   stop-color="white" stop-opacity="0.2"/>
-            <stop offset="100%" stop-color="white" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <circle cx="90" cy="90" r="74" id="sackBase" fill="#3B6D11"/>
-        <circle cx="90" cy="90" r="74" fill="url(#shine)"/>
-        <path d="M90 16 Q120 55 110 90 Q100 125 90 164" stroke="white" stroke-opacity="0.18" stroke-width="1.5" fill="none"/>
-        <path d="M90 16 Q60 55 70 90 Q80 125 90 164"   stroke="white" stroke-opacity="0.18" stroke-width="1.5" fill="none"/>
-        <path d="M23 55  Q60 65 90 60  Q120 65 157 55"  stroke="white" stroke-opacity="0.18" stroke-width="1.5" fill="none"/>
-        <path d="M23 125 Q60 115 90 120 Q120 115 157 125" stroke="white" stroke-opacity="0.18" stroke-width="1.5" fill="none"/>
-        <circle cx="90" cy="16"  r="4" fill="white" fill-opacity="0.3"/>
-        <circle cx="90" cy="164" r="4" fill="white" fill-opacity="0.3"/>
-      </svg>
+      <img class="sack-img" id="sackImg" src="d064fcdb-2260-48aa-8dc8-ba6e475daf01.png" alt="Hacky sack preview" />
     </div>
 
     <div class="section">
@@ -473,11 +464,21 @@
   const state = { color: 'Forest Green', herb: 'Lavender', weight: 'Light (60g)', panel: 'Classic 6-panel', material: 'Suede', extras: 0 };
 
   // ── COLOR PICKER ──────────────────────────────────────
+  // CSS filter strings tuned to match each brand color
+  const colorFilters = {
+    'Forest Green': 'drop-shadow(0 10px 28px rgba(0,0,0,0.25)) sepia(1) saturate(4) hue-rotate(60deg)',
+    'Sunset Coral': 'drop-shadow(0 10px 28px rgba(0,0,0,0.25)) sepia(1) saturate(5) hue-rotate(320deg)',
+    'Desert Amber': 'drop-shadow(0 10px 28px rgba(0,0,0,0.25)) sepia(1) saturate(4) hue-rotate(10deg)',
+    'Deep Blue':    'drop-shadow(0 10px 28px rgba(0,0,0,0.25)) sepia(1) saturate(5) hue-rotate(180deg)',
+    'Wild Rose':    'drop-shadow(0 10px 28px rgba(0,0,0,0.25)) sepia(1) saturate(4) hue-rotate(270deg)',
+    'Charcoal':     'drop-shadow(0 10px 28px rgba(0,0,0,0.25)) grayscale(1) brightness(0.45)',
+  };
+
   function pickColor(el, hex, name) {
     document.querySelectorAll('#colorChips .chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     state.color = name;
-    document.getElementById('sackBase').setAttribute('fill', hex);
+    document.getElementById('sackImg').style.filter = colorFilters[name] || colorFilters['Forest Green'];
     updateSummary();
   }
 
