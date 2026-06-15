@@ -184,6 +184,14 @@
     .chip.color-chip { display: flex; align-items: center; gap: 7px; }
     .chip-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
+    .chip.sold-out {
+      background-color: #e53e3e;
+      color: white;
+      cursor: not-allowed;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
     /* PRICE ROW */
     .price-row { display: flex; align-items: baseline; justify-content: space-between; padding: 1.25rem 1.5rem 0; }
     .price-label { font-size: 13px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
@@ -298,7 +306,7 @@
         <div class="chip-grid" id="colorChips">
           <div class="chip color-chip"        onclick="pickColor(this,'#e7e7df','White')"   ><span class="chip-dot" style="background:#e7e7df"></span>White</div>
           <div class="chip color-chip"        onclick="pickColor(this,'#D85A30','Sunset Coral')"><span class="chip-dot" style="background:#D85A30"></span>Sunset Coral</div>
-          <div class="chip color-chip"        onclick="pickColor(this,'#BA7517','Desert Amber')"><span class="chip-dot" style="background:#BA7517"></span>Desert Amber</div>
+          <div class="chip color-chip sold-out"        onclick="pickColor(this,'#BA7517','Desert Amber')"><span class="chip-dot" style="background:#BA7517"></span>Desert Amber</div>
           <div class="chip color-chip"        onclick="pickColor(this,'#185FA5','Deep Blue')"  ><span class="chip-dot" style="background:#185FA5"></span>Deep Blue</div>
           <div class="chip color-chip"        onclick="pickColor(this,'#993356','Wild Rose')"  ><span class="chip-dot" style="background:#993356"></span>Wild Rose</div>
           <div class="chip color-chip active" onclick="pickColor(this,'#3B6D11','Forest Green')"><span class="chip-dot" style="background:#3B6D11"></span>Forest Green</div>
@@ -336,7 +344,7 @@
       <div class="panel">
         <div class="chip-grid" id="panelChips">
           <div class="chip active" onclick="pickOption('panel',this,'Classic 6-panel',0)">Classic 6-panel</div>
-          <div class="chip"        onclick="pickOption('panel',this,'8-panel',3)">8-panel +$3</div>
+          <div class="chip"        onclick="pickOption('panel',this,'8-panel',3)">14-panel +$3</div>
           <div class="chip"        onclick="pickOption('panel',this,'32-panel pro',8)">32-panel pro +$8</div>
         </div>
       </div>
