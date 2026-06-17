@@ -19,7 +19,9 @@ const app  = express();
 const PORT = 3000;
 
 // ── MIDDLEWARE ────────────────────────────────────────
-app.use(cors());
+app.use(cors({
+  origin: ['https://sack-factory.netlify.app', 'http://localhost:3000']
+}));
 app.use(express.json());
 
 // Serve your HTML file when someone visits localhost:3000
