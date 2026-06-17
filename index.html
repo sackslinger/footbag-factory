@@ -667,14 +667,11 @@
         paymentId: paymentIntent.id
       };
 
-      if (APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbxnC6oYw-B7avyQHRvUiRoxI7VkA-qegpxgh30cl7UrazW55HQ5P6GBuRUrJEp0qLEp/exec') {
-        fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(orderData)
-        }).catch(() => {}); // fire-and-forget, don't block the user
-      }
+      fetch('https://footbag-factory-production.up.railway.app/notify-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      }).catch(() => {});
 
       document.getElementById('modal-text').innerHTML =
         'Your ' + state.color + ' hacky sack with ' + state.herb.toLowerCase() +
