@@ -77,7 +77,6 @@ app.post("/notify-order", async (req, res) => {
   }
 });
 
-});
 // ── START SERVER ──────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`
