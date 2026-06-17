@@ -58,7 +58,20 @@ app.post("/create-payment-intent", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
+// ── ORDER NOTIFICATION ROUTE ──────────────────────────
+app.post("/notify-order", async (req, res) => {
+  try {
+    const response = await fetch('https://script.google.com/macros/s/AKfycbxnC6oYw-B7avyQHRvUiRoxI7VkA-qegpxgh30cl7UrazW55HQ5P6GBuRUrJEp0qLEp/exec', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Notification error:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
 // ── START SERVER ──────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`
